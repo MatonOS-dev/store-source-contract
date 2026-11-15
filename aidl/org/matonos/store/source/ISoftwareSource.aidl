@@ -30,6 +30,7 @@ interface ISoftwareSource {
     const int CAP_PERMISSIONS = 1 << 4;
     const int CAP_LOGIN = 1 << 5;
     const int CAP_REQUIRES_SETUP = 1 << 6;
+    const int CAP_ALLOW_REPAIR = 1 << 7;
 
     SourceInfo info();
     AppListing[] search(String term, int offset, int limit);

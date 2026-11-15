@@ -118,8 +118,9 @@ recorded to it (shown as "source unavailable", no updates) and are never moved
 to another source silently. Only the user moves a package to another source,
 which is a reinstall from that source.
 
-Dependencies (e.g. Flatpak runtimes as their own packages): `install(id)` on
-an installed app also repairs it, committing any dependency that is missing
-and nothing that is intact. The source keeps the dependency list itself (for
-Flatpak the app's signed deployment record), so a removed runtime is found
-even though its package is gone.
+Dependencies (e.g. Flatpak runtimes as their own packages) can be uninstalled
+on their own; nothing blocks it. Repair happens at launch: the app finds the
+missing dependency in its signed deployment record and asks for it again, and
+`install(id)` on an installed app commits only what is missing. The source
+keeps the dependency list itself, so a removed runtime is found even though its
+package is gone.

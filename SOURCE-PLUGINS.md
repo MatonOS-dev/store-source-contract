@@ -13,39 +13,42 @@ A store backend is an app with a bound service that:
 Preinstalled (system) plugins are enabled by default. Any other plugin stays
 off until the user enables it in the store.
 
-## Data (contract version 1)
+## Data
 
-All calls return JSON strings. `info()` returns
-`{"version":1,"name":..,"label":..,"capabilities":[..]}`; the store skips a
-plugin whose version differs.
+Every call returns typed AIDL parcelables (the `.aidl` files in `aidl/` are
+the reference). `SourceInfo.version` is the `ISoftwareSource.VERSION` the
+plugin was built against; the store skips a plugin whose version differs. Failures are thrown with a message, never returned
+as empty results. `search` pages with `offset`/`limit` because a binder
+transaction is capped at 1 MB.
 
-Capabilities (the store shows a feature only for sources that declare it):
-- `HAS_REPOSITORIES`: user-managed repositories; `repos/addRepo/delRepo`.
-- `HAS_AGE_RATINGS`: details carry `ageRating`.
-- `HAS_REVIEWS`: `reviews(id)` returns reviews (others are never asked).
-- `HAS_ANTI_FEATURES`: details carry `antiFeatures`.
-- `HAS_PERMISSIONS`: details carry `permissions` / `safety`.
-- `HAS_LOGIN`: the source supports signing in (e.g. an Aurora backend). The
+`info()` returns `SourceInfo{version, name, label, capabilities}`; `capabilities` is a
+bitmask of `ISoftwareSource.CAP_*` (the store shows a feature only for sources
+that declare it):
+- `CAP_REPOSITORIES`: user-managed repositories; `repos/addRepo/delRepo`.
+- `CAP_AGE_RATINGS`: details carry `ageRating`.
+- `CAP_REVIEWS`: `reviews(id)` returns reviews (others are never asked).
+- `CAP_ANTI_FEATURES`: details carry `antiFeatures`.
+- `CAP_PERMISSIONS`: details carry `permissions` / `safety`.
+- `CAP_LOGIN`: the source supports signing in (e.g. an Aurora backend). The
   store offers "Sign in", which starts the plugin's activity for action
   `org.matonos.store.SOURCE_LOGIN` (resolved inside the plugin package).
   Reserved: not wired in this version.
-- `REQUIRES_SETUP`: the user must configure the source before it is useful. Example: a Huawei AppGallery source.
-  When the user enables it, the store starts the plugin's activity for action
-  `org.matonos.store.SOURCE_SETUP` (an installation wizard) for a result and
-  enables the source only on RESULT_OK. Reserved: future version.
+- `CAP_REQUIRES_SETUP`: the user must configure the source before it is useful
+  (example: a Huawei AppGallery source). When the user enables it, the store
+  starts the plugin's activity for action `org.matonos.store.SOURCE_SETUP` for
+  a result and enables the source only on RESULT_OK. Reserved: future version.
 
 Flatpak: REPOSITORIES, AGE_RATINGS, REVIEWS, PERMISSIONS. F-Droid:
 REPOSITORIES, ANTI_FEATURES, PERMISSIONS.
 
-- `search`, `installed`, `updates`: arrays of AppListing
-  (`id, name, summary, icon, developer, rating?, installed?, versionName?,
-  origin?`, plus `packageName` when the Android package differs from `id`).
-- `details`: one AppDetails (AppListing plus `description, screenshots,
-  permissions, license?, homepage?, downloadSize?, installedSize?, safety?,
-  antiFeatures?, ageRating?`). Types: `src/sources/Source.ts`.
-- `reviews`: array of `{id, author, rating, summary, description, version,
-  date}` (ISO date).
-- `repos`: array of `{id, url, label, official, broken}`.
+- `search`, `installed`, `updates`: `AppListing[]` (`packageName` set when the
+  Android package differs from `id`).
+- `details`: `AppDetails` (the `AppListing` plus description, screenshots,
+  permissions, sizes, safety, anti-features, age rating).
+- `reviews`: `Review[]` (date in epoch ms). `repos`: `Repo[]`.
+
+The store converts results to JS with Gson; field names match
+`src/sources/Source.ts` in the software centre.
 
 ## Install and update
 

@@ -23,7 +23,11 @@ the reference). `SourceInfo.version`/`revision` are the
 - `REVISION` is bumped on every compatible change (methods and parcelable
   fields appended at the end). Any revision works with any store of the same
   version: the store never calls a method newer than the plugin's revision, and
-  readers skip parcelable fields they do not know. Every list call (`search`, `installed`, `updates`, `reviews`, `repos`) is
+  readers skip parcelable fields they do not know.
+- A field added in a revision must have a default that means what an older
+  plugin means by leaving it out (`@nullable` or an explicit `= value`): a
+  store reading an older plugin's parcelable gets that default. Each new method
+  and each new field gets a compatibility test against the previous revision. Every list call (`search`, `installed`, `updates`, `reviews`, `repos`) is
 paged with `offset`/`limit` because a binder transaction is capped at 1 MB; a
 page shorter than `limit` is the last one.
 
@@ -39,10 +43,14 @@ that declare it):
   store offers "Sign in", which starts the plugin's activity for action
   `org.matonos.store.SOURCE_LOGIN` (resolved inside the plugin package).
   Reserved: not wired in this version.
-- `CAP_REQUIRES_SETUP`: the user must configure the source before it is useful
+- `CAP_REQUIRES_SETUP` (a static requirement; `info()` never reports state):
+  the user must configure the source before it is useful
   (example: a Huawei AppGallery source). When the user enables it, the store
   starts the plugin's activity for action `org.matonos.store.SOURCE_SETUP` for
   a result and enables the source only on RESULT_OK. Reserved: future version.
+
+Ids are opaque and only mean something to the source that returned them: the
+store keys every app by (plugin package, id).
 
 Flatpak: REPOSITORIES, AGE_RATINGS, REVIEWS, PERMISSIONS. F-Droid:
 REPOSITORIES, ANTI_FEATURES, PERMISSIONS.
@@ -89,3 +97,17 @@ with base.apk is a full install or update; one without it (splits and/or
 dependent package only after its dependencies succeeded. When everything is
 in, the source calls `done(operationId)`, or `failed(operationId, error)`.
 Sources never install or uninstall; the store uninstalls by package name.
+
+`cancel(operationId)` stops a running install: the source stops downloading,
+abandons nothing the store has already committed, and ends with
+`failed(operationId, "cancelled")`. The store abandons a session it has not
+committed yet.
+
+Ownership: the store is the installer of every package. When a commit
+succeeds it records which plugin supplied that package; `installed()` and
+`updates()` are asked with that record in mind: the store passes a package to
+a source for updates only if that source supplied it. A package available in
+several sources stays with the source that installed it until the user
+uninstalls it. `installed()` returns the packages the source knows it supplied
+(its own state, e.g. Flatpak's installed refs); the store intersects that
+with its record.

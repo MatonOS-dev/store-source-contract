@@ -35,7 +35,7 @@ interface ISoftwareSource {
     AppListing[] search(String term, int offset, int limit);
     AppDetails details(String id);
     Review[] reviews(String id, int offset, int limit);
-    /** Apps this source installed. */
+    /** Installed packages that came from this source (store's record, see SOURCE-PLUGINS.md). */
     AppListing[] installed(int offset, int limit);
     /** Installed apps with an update available. */
     AppListing[] updates(int offset, int limit);
@@ -44,4 +44,6 @@ interface ISoftwareSource {
     void delRepo(String id);
     /** Prepares an install or update; the APKs come back through callback.commit(). */
     void install(String id, String operationId, IInstallCallback callback);
+    /** Stops a running install(); the source ends it with callback.failed(operationId, "cancelled"). Unknown or finished ids are ignored. */
+    void cancel(String operationId);
 }

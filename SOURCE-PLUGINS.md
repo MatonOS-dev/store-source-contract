@@ -31,12 +31,12 @@ the reference). `SourceInfo.version`/`revision` are the
 paged with `offset`/`limit` because a binder transaction is capped at 1 MB; a
 page shorter than `limit` is the last one.
 
-`info()` returns `SourceInfo{version, name, label, capabilities}`; `capabilities` is a
+`info()` returns `SourceInfo{version, revision, name, label, capabilities}`; `capabilities` is a
 bitmask of `ISoftwareSource.CAP_*` (the store shows a feature only for sources
 that declare it):
 - `CAP_REPOSITORIES`: user-managed repositories; `repos/addRepo/delRepo`.
 - `CAP_AGE_RATINGS`: details carry `ageRating`.
-- `CAP_REVIEWS`: `reviews(id)` returns reviews (others are never asked).
+- `CAP_REVIEWS`: `reviews(id, offset, limit)` returns reviews (others are never asked).
 - `CAP_ANTI_FEATURES`: details carry `antiFeatures`.
 - `CAP_PERMISSIONS`: details carry `permissions` / `safety`.
 - `CAP_LOGIN`: the source supports signing in (e.g. an Aurora backend). The
@@ -111,3 +111,15 @@ several sources stays with the source that installed it until the user
 uninstalls it. `installed()` returns the packages the source knows it supplied
 (its own state, e.g. Flatpak's installed refs); the store intersects that
 with its record.
+
+The ownership record is the store's own and outlives the source: if the
+plugin is uninstalled or loses its data, the packages it supplied stay
+recorded to it (shown as "source unavailable", no updates) and are never moved
+to another source silently. Only the user moves a package to another source,
+which is a reinstall from that source.
+
+Dependencies (e.g. Flatpak runtimes as their own packages): `install(id)` on
+an installed app also repairs it, committing any dependency that is missing
+and nothing that is intact. The source keeps the dependency list itself (for
+Flatpak the app's signed deployment record), so a removed runtime is found
+even though its package is gone.

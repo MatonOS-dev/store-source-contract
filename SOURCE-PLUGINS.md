@@ -50,11 +50,17 @@ that declare it):
   a result and enables the source only on RESULT_OK. Reserved: future version.
 Any enabled source may call `IStore.update(id, result)` (bind action
 `org.matonos.store.STORE`). The store checks that `id` is installed and
-recorded to the calling source, then runs `install(id)` on it; anything else is
+recorded to the calling source, then runs `install(id, repo)` on it with the recorded repo; anything else is
 rejected. `result` gets the outcome of the whole install.
 
-Ids are opaque and only mean something to the source that returned them: the
-store keys every app by (plugin package, id).
+Ids are opaque and only mean something to the source that returned them.
+An install candidate is (id, repo): `repo` is a `Repo.id` from `repos()`, or
+`"1"` for a source without repositories. `search` returns one listing per
+candidate, so an app in several repos appears once per repo; the store groups
+them by app and lets the user pick the repo (a drop-down, later). `details`
+and `install` take the pair. The store records (plugin package, id, repo) for
+every installed package; updates and `IStore.update` stay on that repo, and
+moving to another repo is a reinstall the user chooses.
 
 Flatpak: REPOSITORIES, AGE_RATINGS, REVIEWS, PERMISSIONS. F-Droid:
 REPOSITORIES, ANTI_FEATURES, PERMISSIONS.
@@ -88,7 +94,7 @@ The store maps them as follows:
 
 ## Install and update
 
-`install(id, operationId, callback)` is used for both and returns at once; the
+`install(id, repo, operationId, callback)` is used for both and returns at once; the
 work runs in the background. The source downloads and verifies, reports
 `progress`, and hands every package to the store with
 `commit(operationId, packageName, names, files, removeSplits, result)`:
@@ -125,7 +131,7 @@ which is a reinstall from that source.
 Dependencies (e.g. Flatpak runtimes as their own packages) can be uninstalled
 on their own; nothing blocks it. Repair happens at launch: the app finds the
 missing dependency in its signed deployment record, the source calls
-`IStore.update(id)`, and the store runs `install(id)`,
+`IStore.update(id)`, and the store runs `install(id, repo)`,
 which on an installed app commits only what is missing. The source
 keeps the dependency list itself, so a removed runtime is found even though its
 package is gone.

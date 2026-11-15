@@ -4,16 +4,14 @@ import org.matonos.store.source.ICommitResult;
 
 /**
  * Served by the store (bind action org.matonos.store.STORE) for source
- * plugins. The store checks the caller's UID: it must be an enabled source
- * plugin declaring CAP_ALLOW_REPAIR.
+ * plugins; any enabled source may call it.
  */
 interface IStore {
     /**
-     * Asks the store to run install(id) on the calling source to restore
-     * missing dependencies of an installed app. With the plugin's "Allow
-     * repairs" setting on, the store runs it at once (progress notification
-     * only); off, it asks the user first. result gets the outcome of the whole
-     * install (ok=false, "declined" when the user says no).
+     * Asks the store to update an app the calling source installed (it also
+     * restores missing dependencies). The store checks that id is installed
+     * and recorded to the caller, then runs install(id) on the caller. result
+     * gets the outcome of the whole install.
      */
-    void repair(String id, ICommitResult result);
+    void update(String id, ICommitResult result);
 }

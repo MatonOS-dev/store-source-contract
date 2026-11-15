@@ -48,13 +48,10 @@ that declare it):
   (example: a Huawei AppGallery source). When the user enables it, the store
   starts the plugin's activity for action `org.matonos.store.SOURCE_SETUP` for
   a result and enables the source only on RESULT_OK. Reserved: future version.
-- `CAP_ALLOW_REPAIR`: the source may ask the store to repair an installed
-  app through `IStore.repair(id, result)` (bind action
-  `org.matonos.store.STORE`). The store's settings page shows an "Allow
-  repairs" toggle for such a source: on by default for a preinstalled (system
-  image) source that declares it, off for every other. On, a repair runs without
-  a prompt (progress notification only); off, the store asks the user first.
-  Requests from a source without the capability are rejected.
+Any enabled source may call `IStore.update(id, result)` (bind action
+`org.matonos.store.STORE`). The store checks that `id` is installed and
+recorded to the calling source, then runs `install(id)` on it; anything else is
+rejected. `result` gets the outcome of the whole install.
 
 Ids are opaque and only mean something to the source that returned them: the
 store keys every app by (plugin package, id).
@@ -128,7 +125,7 @@ which is a reinstall from that source.
 Dependencies (e.g. Flatpak runtimes as their own packages) can be uninstalled
 on their own; nothing blocks it. Repair happens at launch: the app finds the
 missing dependency in its signed deployment record, the source calls
-`IStore.repair(id)` (`CAP_ALLOW_REPAIR`), and the store runs `install(id)`,
+`IStore.update(id)`, and the store runs `install(id)`,
 which on an installed app commits only what is missing. The source
 keeps the dependency list itself, so a removed runtime is found even though its
 package is gone.

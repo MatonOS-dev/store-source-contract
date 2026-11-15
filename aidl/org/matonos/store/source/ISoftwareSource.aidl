@@ -21,7 +21,7 @@ interface ISoftwareSource {
      * Bumped on every compatible change (method or parcelable field appended at
      * the end). The store never calls a method newer than the plugin's revision.
      */
-    const int REVISION = 0;
+    const int REVISION = 1;
 
     const int CAP_REPOSITORIES = 1 << 0;
     const int CAP_AGE_RATINGS = 1 << 1;
@@ -46,4 +46,10 @@ interface ISoftwareSource {
     void install(String id, String repo, String operationId, IInstallCallback callback);
     /** Stops a running install(); the source ends it with callback.failed(operationId, "cancelled"). Unknown or finished ids are ignored. */
     void cancel(String operationId);
+    /**
+     * Revision 1. Keep-alive state check: true while operationId is still being
+     * worked on (not yet ended with done/failed). Must answer at once, never block
+     * on the operation's own work.
+     */
+    boolean running(String operationId);
 }

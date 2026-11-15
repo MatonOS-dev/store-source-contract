@@ -113,6 +113,15 @@ abandons nothing the store has already committed, and ends with
 `failed(operationId, "cancelled")`. The store abandons a session it has not
 committed yet.
 
+Keep-alive (revision 1): while an operation is in flight the store
+periodically calls `running(operationId)`. `false` before the source called
+`done`/`failed` means the source lost the operation: the store fails it
+("<label> lost the operation") and abandons uncommitted sessions. A call that
+throws `DeadObjectException` is handled as "<label> stopped" (see Errors).
+`running` answers from the source's own operation table and never waits for
+the operation's work, so a stuck download still shows as running; progress
+reporting is how the user sees it stall.
+
 Ownership: the store is the installer of every package. When a commit
 succeeds it records which plugin supplied that package; `installed()` and
 `updates()` are asked with that record in mind: the store passes a package to

@@ -1,6 +1,6 @@
-package org.matonos.store.source;
+package org.matonos.store.source.types;
 
-import org.matonos.store.source.Rating;
+import org.matonos.store.source.types.Rating;
 
 /** One row of a list (search, installed, updates). */
 parcelable AppListing {

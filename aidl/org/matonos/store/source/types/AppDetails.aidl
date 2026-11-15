@@ -1,9 +1,9 @@
-package org.matonos.store.source;
+package org.matonos.store.source.types;
 
-import org.matonos.store.source.AgeRating;
-import org.matonos.store.source.AntiFeature;
-import org.matonos.store.source.AppListing;
-import org.matonos.store.source.Safety;
+import org.matonos.store.source.types.AgeRating;
+import org.matonos.store.source.types.AntiFeature;
+import org.matonos.store.source.types.AppListing;
+import org.matonos.store.source.types.Safety;
 
 /** Everything about one app. Sizes in bytes, -1 = unknown. */
 parcelable AppDetails {

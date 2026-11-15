@@ -1,11 +1,11 @@
 package org.matonos.store.source;
 
-import org.matonos.store.source.AppDetails;
-import org.matonos.store.source.AppListing;
+import org.matonos.store.source.types.AppDetails;
+import org.matonos.store.source.types.AppListing;
 import org.matonos.store.source.IInstallCallback;
-import org.matonos.store.source.Repo;
-import org.matonos.store.source.Review;
-import org.matonos.store.source.SourceInfo;
+import org.matonos.store.source.types.Repo;
+import org.matonos.store.source.types.Review;
+import org.matonos.store.source.types.SourceInfo;
 
 /**
  * A software source (store backend). Implemented by plugin apps, called only by

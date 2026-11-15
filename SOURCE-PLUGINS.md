@@ -15,7 +15,7 @@ off until the user enables it in the store.
 
 ## Data
 
-Every call returns typed AIDL parcelables (the `.aidl` files in `aidl/` are
+Every call returns typed AIDL parcelables (package `org.matonos.store.source.types`, `aidl/.../types/`, is
 the reference). `SourceInfo.version` is the `ISoftwareSource.VERSION` the
 plugin was built against; the store skips a plugin whose version differs. Failures are thrown with a message, never returned
 as empty results. `search` pages with `offset`/`limit` because a binder

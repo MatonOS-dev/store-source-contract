@@ -1,4 +1,4 @@
-package org.matonos.store.source;
+package org.matonos.store.source.types;
 
 /** level: "none" | "mild" | "moderate" | "intense". */
 parcelable AgeRatingCategory { String id; String title; String description; String level; }

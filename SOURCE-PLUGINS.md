@@ -17,9 +17,13 @@ off until the user enables it in the store.
 
 Every call returns typed AIDL parcelables (package `org.matonos.store.source.types`, `aidl/.../types/`, is
 the reference). `SourceInfo.version` is the `ISoftwareSource.VERSION` the
-plugin was built against; the store skips a plugin whose version differs. Failures are thrown with a message, never returned
-as empty results. `search` pages with `offset`/`limit` because a binder
-transaction is capped at 1 MB.
+plugin was built against. VERSION only grows by compatible changes (methods and
+parcelable fields appended at the end), so the store accepts any plugin with
+version <= its own and never calls a method newer than the plugin's version. A
+plugin newer than the store is skipped. An incompatible change gets a new
+interface and bind action, not a VERSION bump. Every list call (`search`, `installed`, `updates`, `reviews`, `repos`) is
+paged with `offset`/`limit` because a binder transaction is capped at 1 MB; a
+page shorter than `limit` is the last one.
 
 `info()` returns `SourceInfo{version, name, label, capabilities}`; `capabilities` is a
 bitmask of `ISoftwareSource.CAP_*` (the store shows a feature only for sources
@@ -49,6 +53,24 @@ REPOSITORIES, ANTI_FEATURES, PERMISSIONS.
 
 The store converts results to JS with Gson; field names match
 `src/sources/Source.ts` in the software centre.
+
+## Errors
+
+Binder carries only some exceptions. A plugin reports a failure by throwing
+one of these with a message (never by returning an empty result):
+`IllegalArgumentException` (bad id/url), `IllegalStateException` (anything
+else: network, repo, disk), `UnsupportedOperationException` (call outside the
+declared capabilities), `SecurityException`. Any other exception does not cross
+binder; it crashes the plugin process.
+
+The store maps them as follows:
+- a thrown exception above: that call fails with the plugin's message, shown
+  to the user and logged with the plugin package;
+- `DeadObjectException` (plugin crashed or was killed) or a binding that
+  disconnects: the call fails with "<label> stopped", the store drops the
+  binding and binds again on the next call; an operation in flight is reported
+  failed;
+- a plugin that cannot be bound or reports another VERSION: skipped and logged.
 
 ## Install and update
 

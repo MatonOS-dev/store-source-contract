@@ -16,12 +16,14 @@ off until the user enables it in the store.
 ## Data
 
 Every call returns typed AIDL parcelables (package `org.matonos.store.source.types`, `aidl/.../types/`, is
-the reference). `SourceInfo.version` is the `ISoftwareSource.VERSION` the
-plugin was built against. VERSION only grows by compatible changes (methods and
-parcelable fields appended at the end), so the store accepts any plugin with
-version <= its own and never calls a method newer than the plugin's version. A
-plugin newer than the store is skipped. An incompatible change gets a new
-interface and bind action, not a VERSION bump. Every list call (`search`, `installed`, `updates`, `reviews`, `repos`) is
+the reference). `SourceInfo.version`/`revision` are the
+`ISoftwareSource.VERSION`/`REVISION` the plugin was built against.
+- `VERSION` is the API version, bumped on every breaking change; `REVISION`
+  resets to 0 then. The store skips a plugin whose version differs from its own.
+- `REVISION` is bumped on every compatible change (methods and parcelable
+  fields appended at the end). Any revision works with any store of the same
+  version: the store never calls a method newer than the plugin's revision, and
+  readers skip parcelable fields they do not know. Every list call (`search`, `installed`, `updates`, `reviews`, `repos`) is
 paged with `offset`/`limit` because a binder transaction is capped at 1 MB; a
 page shorter than `limit` is the last one.
 

@@ -15,12 +15,13 @@ import org.matonos.store.source.types.SourceInfo;
  * Errors: see "Errors" in SOURCE-PLUGINS.md.
  */
 interface ISoftwareSource {
-    /**
-     * Contract revision. Only compatible changes: methods appended at the end,
-     * parcelable fields appended at the end. A plugin built against an older
-     * VERSION keeps working; the store never calls methods newer than it.
-     */
+    /** API version: bumped on every breaking change; REVISION then resets to 0. */
     const int VERSION = 2;
+    /**
+     * Bumped on every compatible change (method or parcelable field appended at
+     * the end). The store never calls a method newer than the plugin's revision.
+     */
+    const int REVISION = 0;
 
     const int CAP_REPOSITORIES = 1 << 0;
     const int CAP_AGE_RATINGS = 1 << 1;

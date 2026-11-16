@@ -27,9 +27,14 @@ the reference). `SourceInfo.version`/`revision` are the
 - A field added in a revision must have a default that means what an older
   plugin means by leaving it out (`@nullable` or an explicit `= value`): a
   store reading an older plugin's parcelable gets that default. Each new method
-  and each new field gets a compatibility test against the previous revision. Every list call (`search`, `installed`, `updates`, `reviews`, `repos`) is
+  and each new field gets a compatibility test against the previous revision. Every list call (`search`, `collection`, `installed`, `updates`, `reviews`, `repos`) is
 paged with `offset`/`limit` because a binder transaction is capped at 1 MB; a
 page shorter than `limit` is the last one.
+
+`collection(kind, offset, limit)` returns a curated browse list for `popular`
+or `new`. A source that does not support a kind returns an empty page. This
+method was appended in revision 2; stores must not call it on revision 1
+plugins.
 
 `info()` returns `SourceInfo{version, revision, name, label, capabilities}`; `capabilities` is a
 bitmask of `ISoftwareSource.CAP_*` (the store shows a feature only for sources

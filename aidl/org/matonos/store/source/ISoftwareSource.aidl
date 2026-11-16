@@ -21,7 +21,7 @@ interface ISoftwareSource {
      * Bumped on every compatible change (method or parcelable field appended at
      * the end). The store never calls a method newer than the plugin's revision.
      */
-    const int REVISION = 1;
+    const int REVISION = 2;
 
     const int CAP_REPOSITORIES = 1 << 0;
     const int CAP_AGE_RATINGS = 1 << 1;
@@ -52,4 +52,10 @@ interface ISoftwareSource {
      * on the operation's own work.
      */
     boolean running(String operationId);
+    /**
+     * A curated browse collection. kind is "popular" or "new"; unknown or
+     * unsupported kinds return an empty page. Results use the same offset/limit
+     * paging contract as search().
+     */
+    AppListing[] collection(String kind, int offset, int limit);
 }

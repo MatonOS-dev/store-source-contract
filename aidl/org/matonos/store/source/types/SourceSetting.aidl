@@ -6,9 +6,9 @@ parcelable SourceSetting {
     String label;
     String type;
     @nullable String value;
-    float min = 0;
-    float max = 1;
-    float step = 1;
+    float min;
+    float max;
+    float step;
     boolean readOnly = false;
     boolean removable = false;
     @nullable String[] lineValues;

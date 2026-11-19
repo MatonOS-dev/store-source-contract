@@ -11,7 +11,6 @@ parcelable SourceSetting {
     float step;
     boolean readOnly = false;
     boolean removable = false;
-    @nullable String[] lineValues;
     @nullable SourceSetting[] children;
     @nullable SourceSetting[] fields;
 }

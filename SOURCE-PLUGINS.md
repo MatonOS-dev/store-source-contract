@@ -81,7 +81,7 @@ Flatpak: AGE_RATINGS, REVIEWS, PERMISSIONS. F-Droid: ANTI_FEATURES, PERMISSIONS.
   Android package differs from `id`).
 - `details`: `AppDetails` (the `AppListing` plus description, screenshots,
   permissions, sizes, safety, anti-features, age rating).
-- `reviews`: `Review[]` (date in epoch ms). `repos`: `Repo[]`.
+- `reviews`: `Review[]` (date in epoch ms).
 
 The store converts results to JS with Gson; field names match
 `src/sources/Source.ts` in the software centre.

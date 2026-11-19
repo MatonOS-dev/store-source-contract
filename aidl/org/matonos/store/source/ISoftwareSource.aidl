@@ -25,7 +25,6 @@ interface ISoftwareSource {
      */
     const int REVISION = 0;
 
-    const int CAP_REPOSITORIES = 1 << 0; // Legacy feature marker; repositories are now settings.
     const int CAP_AGE_RATINGS = 1 << 1;
     const int CAP_REVIEWS = 1 << 2;
     const int CAP_ANTI_FEATURES = 1 << 3;

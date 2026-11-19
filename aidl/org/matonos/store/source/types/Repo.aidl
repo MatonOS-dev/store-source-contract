@@ -9,4 +9,6 @@ parcelable Repo {
     /** Revision 9. A seeded repository remains enabled/disabled by user choice and cannot be removed. */
     boolean builtIn = false;
     boolean removable = true;
+    /** Revision 12. Backend supplied one-line repository description. */
+    @nullable String description;
 }

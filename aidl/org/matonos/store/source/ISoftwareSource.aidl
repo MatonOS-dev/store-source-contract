@@ -22,7 +22,7 @@ interface ISoftwareSource {
      * Bumped on every compatible change (method or parcelable field appended at
      * the end). The store never calls a method newer than the plugin's revision.
      */
-    const int REVISION = 11;
+    const int REVISION = 12;
 
     const int CAP_REPOSITORIES = 1 << 0;
     const int CAP_AGE_RATINGS = 1 << 1;

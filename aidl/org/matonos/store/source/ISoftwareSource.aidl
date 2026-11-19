@@ -2,6 +2,7 @@ package org.matonos.store.source;
 
 import org.matonos.store.source.types.AppDetails;
 import org.matonos.store.source.types.AppListing;
+import org.matonos.store.source.types.PopularApp;
 import org.matonos.store.source.IInstallCallback;
 import org.matonos.store.source.types.Repo;
 import org.matonos.store.source.types.Review;

@@ -31,6 +31,18 @@ the reference). `SourceInfo.version`/`revision` are the
 paged with `offset`/`limit` because a binder transaction is capped at 1 MB; a
 page shorter than `limit` is the last one.
 
+`collection(kind, offset, limit)` is the revision 2 curated browse call for
+`popular` or `new`; unsupported kinds return an empty page.
+
+Revision 3 adds `getPopularApps(limit)`, returning `{app, score}` records. Scores
+are backend-owned values from 0 to 10 so the store can merge sources. Sources
+below revision 3 remain usable for other features; the store logs and skips
+them in Popular. Revision 4 appends `AppListing.added`, a Unix timestamp in
+seconds when a source knows when a catalogue entry was added. Revision 5 adds
+repository enabled state, app count, refresh time, and `setRepoEnabled(id,
+enabled)`; unknown counts and times use `-1` and `0` respectively. Revision 6
+adds `addRepoNamed(name, url)` for source settings that let the user name a repo.
+
 `info()` returns `SourceInfo{version, revision, name, label, capabilities}`; `capabilities` is a
 bitmask of `ISoftwareSource.CAP_*` (the store shows a feature only for sources
 that declare it):

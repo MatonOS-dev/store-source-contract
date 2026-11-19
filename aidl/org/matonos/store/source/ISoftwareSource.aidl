@@ -21,7 +21,7 @@ interface ISoftwareSource {
      * Bumped on every compatible change (method or parcelable field appended at
      * the end). The store never calls a method newer than the plugin's revision.
      */
-    const int REVISION = 1;
+    const int REVISION = 6;
 
     const int CAP_REPOSITORIES = 1 << 0;
     const int CAP_AGE_RATINGS = 1 << 1;
@@ -52,4 +52,12 @@ interface ISoftwareSource {
      * on the operation's own work.
      */
     boolean running(String operationId);
+    /** Revision 2. Curated, paged browse collection (popular or new). */
+    AppListing[] collection(String kind, int offset, int limit);
+    /** Revision 3. Popular listings with backend-owned scores from 0 through 10. */
+    PopularApp[] getPopularApps(int limit);
+    /** Revision 5. Enables or disables a repository without removing its trust record. */
+    void setRepoEnabled(String id, boolean enabled);
+    /** Revision 6. Adds a repository with a user-visible label. */
+    void addRepoNamed(String name, String url);
 }

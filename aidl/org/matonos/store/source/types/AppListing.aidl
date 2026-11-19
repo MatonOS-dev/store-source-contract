@@ -1,6 +1,7 @@
 package org.matonos.store.source.types;
 
 import org.matonos.store.source.types.Rating;
+import org.matonos.store.source.types.AppBadge;
 
 /**
  * One row of a list (search, installed, updates): one install candidate.
@@ -14,4 +15,6 @@ parcelable AppListing {
     @nullable String versionName; @nullable String packageName;
     /** Revision 4. Unix timestamp in seconds when this catalogue entry was added, if known. */
     long added;
+    /** Revision 7. Backend supplied badges; unknown symbols are rendered generically. */
+    @nullable AppBadge[] badges;
 }

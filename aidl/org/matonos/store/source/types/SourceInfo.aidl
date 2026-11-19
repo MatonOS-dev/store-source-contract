@@ -1,4 +1,9 @@
 package org.matonos.store.source.types;
 
 /** Returned by ISoftwareSource.info(). version/revision = ISoftwareSource.VERSION/REVISION the plugin was built against; capabilities is a bitmask of ISoftwareSource.CAP_*. */
-parcelable SourceInfo { int version; int revision; String name; String label; int capabilities; }
+parcelable SourceInfo { int version; int revision; String name; String label; int capabilities;
+    /** Revision 10. */
+    @nullable String description;
+    /** Revision 11. Labels for backend-specific repository-add text fields. */
+    @nullable String[] addRepoFields;
+}

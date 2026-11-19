@@ -16,4 +16,6 @@ parcelable AppDetails {
     @nullable Safety safety;
     @nullable AntiFeature[] antiFeatures;
     @nullable AgeRating ageRating;
+    /** Revision 8. CommonMark description; null means use description as Markdown. */
+    @nullable String descriptionMarkdown;
 }

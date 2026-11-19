@@ -12,4 +12,6 @@ parcelable AppListing {
     boolean installed;
     String repo = "1";
     @nullable String versionName; @nullable String packageName;
+    /** Revision 4. Unix timestamp in seconds when this catalogue entry was added, if known. */
+    long added;
 }

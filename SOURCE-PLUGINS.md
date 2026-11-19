@@ -157,3 +157,10 @@ missing dependency in its signed deployment record, the source calls
 which on an installed app commits only what is missing. The source
 keeps the dependency list itself, so a removed runtime is found even though its
 package is gone.
+
+
+Revision 13 adds nullable `AppListing.repoOptions`, ordered by backend priority.
+Each `RepoOption` has a repository ID and display name, optional version,
+whether installing from it can update the installed app, and an optional
+explanation when it cannot. An absent list means one implicit option from
+the listing's `repo` field.

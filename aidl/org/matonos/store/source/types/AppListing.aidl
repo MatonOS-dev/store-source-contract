@@ -2,6 +2,7 @@ package org.matonos.store.source.types;
 
 import org.matonos.store.source.types.Rating;
 import org.matonos.store.source.types.AppBadge;
+import org.matonos.store.source.types.RepoOption;
 
 /**
  * One row of a list (search, installed, updates): one install candidate.
@@ -17,4 +18,6 @@ parcelable AppListing {
     long added;
     /** Revision 7. Backend supplied badges; unknown symbols are rendered generically. */
     @nullable AppBadge[] badges;
+    /** Revision 13. Repository choices, highest priority first. */
+    @nullable RepoOption[] repoOptions;
 }

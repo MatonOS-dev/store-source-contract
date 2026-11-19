@@ -4,9 +4,10 @@ import org.matonos.store.source.types.AppDetails;
 import org.matonos.store.source.types.AppListing;
 import org.matonos.store.source.types.PopularApp;
 import org.matonos.store.source.IInstallCallback;
-import org.matonos.store.source.types.Repo;
 import org.matonos.store.source.types.Review;
 import org.matonos.store.source.types.SourceInfo;
+import org.matonos.store.source.types.SourceSetting;
+import org.matonos.store.source.types.ActionResult;
 
 /**
  * A software source (store backend). Implemented by plugin apps, called only by
@@ -17,19 +18,17 @@ import org.matonos.store.source.types.SourceInfo;
  */
 interface ISoftwareSource {
     /** API version: bumped on every breaking change; REVISION then resets to 0. */
-    const int VERSION = 2;
+    const int VERSION = 3;
     /**
      * Bumped on every compatible change (method or parcelable field appended at
      * the end). The store never calls a method newer than the plugin's revision.
      */
-    const int REVISION = 13;
+    const int REVISION = 0;
 
-    const int CAP_REPOSITORIES = 1 << 0;
     const int CAP_AGE_RATINGS = 1 << 1;
     const int CAP_REVIEWS = 1 << 2;
     const int CAP_ANTI_FEATURES = 1 << 3;
     const int CAP_PERMISSIONS = 1 << 4;
-    const int CAP_LOGIN = 1 << 5;
     const int CAP_REQUIRES_SETUP = 1 << 6;
 
     SourceInfo info();
@@ -40,9 +39,12 @@ interface ISoftwareSource {
     AppListing[] installed(int offset, int limit);
     /** Installed apps with an update available. */
     AppListing[] updates(int offset, int limit);
-    Repo[] repos(int offset, int limit);
-    void addRepo(String url);
-    void delRepo(String id);
+    /** Settings and actions replace repository and login calls in API version 3. */
+    SourceSetting[] settings();
+    /** Returns null on success, otherwise a user-visible error. A null value removes a removable setting. */
+    @nullable String setSetting(String id, @nullable String value);
+    /** Runs a settings action; confirmed repeats a pending confirmation. */
+    ActionResult runAction(String id, in String[] values, boolean confirmed);
     /** Prepares an install or update; the APKs come back through callback.commit(). */
     void install(String id, String repo, String operationId, IInstallCallback callback);
     /** Stops a running install(); the source ends it with callback.failed(operationId, "cancelled"). Unknown or finished ids are ignored. */
@@ -57,8 +59,4 @@ interface ISoftwareSource {
     AppListing[] collection(String kind, int offset, int limit);
     /** Revision 3. Popular listings with backend-owned scores from 0 through 10. */
     PopularApp[] getPopularApps(int limit);
-    /** Revision 5. Enables or disables a repository without removing its trust record. */
-    void setRepoEnabled(String id, boolean enabled);
-    /** Revision 6. Adds a repository with a user-visible label. */
-    void addRepoNamed(String name, String url);
 }

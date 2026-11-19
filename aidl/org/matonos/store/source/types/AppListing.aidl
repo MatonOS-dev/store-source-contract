@@ -6,7 +6,7 @@ import org.matonos.store.source.types.RepoOption;
 
 /**
  * One row of a list (search, installed, updates): one install candidate.
- * (id, repo) names it; repo is a Repo.id, "1" for sources without repositories.
+ * (id, repo) names it; repo is an opaque source id, or "1" without repositories.
  */
 parcelable AppListing {
     String id; String name; String summary; String icon; String developer;

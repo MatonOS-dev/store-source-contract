@@ -4,6 +4,4 @@ package org.matonos.store.source.types;
 parcelable SourceInfo { int version; int revision; String name; String label; int capabilities;
     /** Revision 10. */
     @nullable String description;
-    /** Revision 11. Labels for backend-specific repository-add text fields. */
-    @nullable String[] addRepoFields;
 }

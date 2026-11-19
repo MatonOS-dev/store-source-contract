@@ -27,62 +27,61 @@ the reference). `SourceInfo.version`/`revision` are the
 - A field added in a revision must have a default that means what an older
   plugin means by leaving it out (`@nullable` or an explicit `= value`): a
   store reading an older plugin's parcelable gets that default. Each new method
-  and each new field gets a compatibility test against the previous revision. Every list call (`search`, `installed`, `updates`, `reviews`, `repos`) is
-paged with `offset`/`limit` because a binder transaction is capped at 1 MB; a
-page shorter than `limit` is the last one.
+  and each new field gets a compatibility test against the previous revision. Every list call (`search`, `installed`, `updates`, `reviews`) is paged with `offset`/`limit` because a binder transaction is capped at 1 MB; a page shorter than `limit` is the last one.
 
 `collection(kind, offset, limit)` is the revision 2 curated browse call for
-`popular` or `new`; unsupported kinds return an empty page. Stores must not
-call it on revision 1 plugins.
+`popular` or `new`; unsupported kinds return an empty page.
 
 Revision 3 adds `getPopularApps(limit)`, returning `{app, score}` records. Scores
 are backend-owned values from 0 to 10 so the store can merge sources. Sources
 below revision 3 remain usable for other features; the store logs and skips
 them in Popular. Revision 4 appends `AppListing.added`, a Unix timestamp in
-seconds when a source knows when a catalogue entry was added. Revision 5 adds
-repository enabled state, app count, refresh time, and `setRepoEnabled(id,
-enabled)`; unknown counts and times use `-1` and `0` respectively. Revision 6
-adds `addRepoNamed(name, url)` for source settings that let the user name a repo. Revision 7 appends backend-owned `AppListing.badges` (`id`, localisable `label`, Material Symbol `icon`). Revision 8 appends `AppDetails.descriptionMarkdown`; descriptions use CommonMark paragraphs, headings, lists, bold, italic, inline code and HTTP(S) links (no raw HTML or images). Revision 9 appends `Repo.builtIn` and `Repo.removable` for default repositories users may toggle but not delete. Revision 10 appends `SourceInfo.description` for backend-owned source text. Revision 11 appends `SourceInfo.addRepoFields`, the backend-labelled fields required when adding a repository. Revision 12 appends `Repo.description` for backend-provided repository subtitles.
+seconds when a source knows when a catalogue entry was added. Revision 7 appends
+backend-owned `AppListing.badges` (`id`, localisable `label`, Material Symbol
+`icon`). Revision 8 appends `AppDetails.descriptionMarkdown`; descriptions use
+CommonMark paragraphs, headings, lists, bold, italic, inline code and HTTP(S)
+links (no raw HTML or images). Revision 10 appends `SourceInfo.description`.
 
-`info()` returns `SourceInfo{version, revision, name, label, capabilities}`; `capabilities` is a
-bitmask of `ISoftwareSource.CAP_*` (the store shows a feature only for sources
-that declare it):
-- `CAP_REPOSITORIES`: user-managed repositories; `repos/addRepo/delRepo`.
-- `CAP_AGE_RATINGS`: details carry `ageRating`.
-- `CAP_REVIEWS`: `reviews(id, offset, limit)` returns reviews (others are never asked).
-- `CAP_ANTI_FEATURES`: details carry `antiFeatures`.
-- `CAP_PERMISSIONS`: details carry `permissions` / `safety`.
-- `CAP_LOGIN`: the source supports signing in (e.g. an Aurora backend). The
-  store offers "Sign in", which starts the plugin's activity for action
-  `org.matonos.store.SOURCE_LOGIN` (resolved inside the plugin package).
-  Reserved: not wired in this version.
-- `CAP_REQUIRES_SETUP` (a static requirement; `info()` never reports state):
-  the user must configure the source before it is useful
-  (example: a Huawei AppGallery source). When the user enables it, the store
-  starts the plugin's activity for action `org.matonos.store.SOURCE_SETUP` for
-  a result and enables the source only on RESULT_OK. Reserved: future version.
+API version 3 replaces repository and login calls with generic source settings
+and actions. This is a breaking change, so `VERSION` is 3 and `REVISION` resets
+to 0. `settings()` returns source-owned rows with types `boolean`, `text`,
+`slider`, `group`, and `action`. Boolean values are `true`/`false`; text and
+slider values are strings. Slider rows carry min/max/step. Groups contain child
+rows and may be removable; removing one calls `setSetting(id, null)`. Actions
+carry text fields and run through `runAction(id, values, confirmed)`. The result
+may be an error, a confirmation request that the store answers by repeating
+with `confirmed=true`, or `launch=true` to open the plugin activity for
+`org.matonos.store.SOURCE_LOGIN`. On return, the store reloads settings.
+Read-only text rows are marked `readOnly`. A source with accounts represents
+them as an Account group with a status line and Sign in/Sign out actions.
+
+`CAP_REQUIRES_SETUP` remains unchanged: when a source declares this static
+requirement, the store starts `org.matonos.store.SOURCE_SETUP` and enables the
+source only on `RESULT_OK`. `CAP_LOGIN` is removed. The detail-page origin
+dropdown remains app data returned in listings, independent of settings. An
+older contract version is skipped; a plugin that has no settings rows simply
+shows an empty settings screen.
+
 Any enabled source may call `IStore.update(id, result)` (bind action
 `org.matonos.store.STORE`). The store checks that `id` is installed and
 recorded to the calling source, then runs `install(id, repo)` on it with the recorded repo; anything else is
 rejected. `result` gets the outcome of the whole install.
 
 Ids are opaque and only mean something to the source that returned them.
-An install candidate is (id, repo): `repo` is a `Repo.id` from `repos()`, or
-`"1"` for a source without repositories. `search` returns one listing per
+An install candidate is `(id, repo)`, where `repo` is an opaque source-owned identifier (or `"1"` when the source has no repositories). `search` returns one listing per
 candidate, so an app in several repos appears once per repo; the store groups
 them by app and lets the user pick the repo (a drop-down, later). `details`
 and `install` take the pair. The store records (plugin package, id, repo) for
 every installed package; updates and `IStore.update` stay on that repo, and
 moving to another repo is a reinstall the user chooses.
 
-Flatpak: REPOSITORIES, AGE_RATINGS, REVIEWS, PERMISSIONS. F-Droid:
-REPOSITORIES, ANTI_FEATURES, PERMISSIONS.
+Flatpak: AGE_RATINGS, REVIEWS, PERMISSIONS. F-Droid: ANTI_FEATURES, PERMISSIONS.
 
 - `search`, `installed`, `updates`: `AppListing[]` (`packageName` set when the
   Android package differs from `id`).
 - `details`: `AppDetails` (the `AppListing` plus description, screenshots,
   permissions, sizes, safety, anti-features, age rating).
-- `reviews`: `Review[]` (date in epoch ms). `repos`: `Repo[]`.
+- `reviews`: `Review[]` (date in epoch ms).
 
 The store converts results to JS with Gson; field names match
 `src/sources/Source.ts` in the software centre.
@@ -157,10 +156,3 @@ missing dependency in its signed deployment record, the source calls
 which on an installed app commits only what is missing. The source
 keeps the dependency list itself, so a removed runtime is found even though its
 package is gone.
-
-
-Revision 13 adds nullable `AppListing.repoOptions`, ordered by backend priority.
-Each `RepoOption` has a repository ID and display name, optional version,
-whether installing from it can update the installed app, and an optional
-explanation when it cannot. An absent list means one implicit option from
-the listing's `repo` field.

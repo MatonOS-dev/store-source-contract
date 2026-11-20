@@ -55,6 +55,11 @@ with `confirmed=true`, or `launch=true` to open the plugin activity for
 Read-only text rows are marked `readOnly`. A source with accounts represents
 them as an Account group with a status line and Sign in/Sign out actions.
 
+API version 4 removes the plugin-supplied `AppListing.rating` field. Ratings are
+owned and fetched by the store for every source; plugins must not emit ratings.
+This is a breaking change, so `VERSION` is 4 and `REVISION` resets to 0.
+Older rating fields are ignored by the store.
+
 `CAP_REQUIRES_SETUP` remains unchanged: when a source declares this static
 requirement, the store starts `org.matonos.store.SOURCE_SETUP` and enables the
 source only on `RESULT_OK`. `CAP_LOGIN` is removed. The detail-page origin
@@ -75,7 +80,7 @@ and `install` take the pair. The store records (plugin package, id, repo) for
 every installed package; updates and `IStore.update` stay on that repo, and
 moving to another repo is a reinstall the user chooses.
 
-Flatpak: AGE_RATINGS, REVIEWS, PERMISSIONS. F-Droid: ANTI_FEATURES, PERMISSIONS.
+Flatpak: AGE_RATINGS, PERMISSIONS. F-Droid: ANTI_FEATURES, PERMISSIONS.
 
 - `search`, `installed`, `updates`: `AppListing[]` (`packageName` set when the
   Android package differs from `id`).

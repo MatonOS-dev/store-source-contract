@@ -1,6 +1,5 @@
 package org.matonos.store.source.types;
 
-import org.matonos.store.source.types.Rating;
 import org.matonos.store.source.types.AppBadge;
 import org.matonos.store.source.types.RepoOption;
 
@@ -10,7 +9,6 @@ import org.matonos.store.source.types.RepoOption;
  */
 parcelable AppListing {
     String id; String name; String summary; String icon; String developer;
-    @nullable Rating rating;
     boolean installed;
     String repo = "1";
     @nullable String versionName; @nullable String packageName;

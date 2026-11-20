@@ -18,7 +18,7 @@ import org.matonos.store.source.types.ActionResult;
  */
 interface ISoftwareSource {
     /** API version: bumped on every breaking change; REVISION then resets to 0. */
-    const int VERSION = 3;
+    const int VERSION = 4;
     /**
      * Bumped on every compatible change (method or parcelable field appended at
      * the end). The store never calls a method newer than the plugin's revision.

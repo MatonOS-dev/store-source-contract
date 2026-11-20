@@ -15,81 +15,19 @@ off until the user enables it in the store.
 
 ## Data
 
-Every call returns typed AIDL parcelables (package `org.matonos.store.source.types`, `aidl/.../types/`, is
-the reference). `SourceInfo.version`/`revision` are the
-`ISoftwareSource.VERSION`/`REVISION` the plugin was built against.
-- `VERSION` is the API version, bumped on every breaking change; `REVISION`
-  resets to 0 then. The store skips a plugin whose version differs from its own.
-- `REVISION` is bumped on every compatible change (methods and parcelable
-  fields appended at the end). Any revision works with any store of the same
-  version: the store never calls a method newer than the plugin's revision, and
-  readers skip parcelable fields they do not know.
-- A field added in a revision must have a default that means what an older
-  plugin means by leaving it out (`@nullable` or an explicit `= value`): a
-  store reading an older plugin's parcelable gets that default. Each new method
-  and each new field gets a compatibility test against the previous revision. Every list call (`search`, `installed`, `updates`, `reviews`) is paged with `offset`/`limit` because a binder transaction is capped at 1 MB; a page shorter than `limit` is the last one.
+`SourceInfo.version`/`revision` are the `ISoftwareSource.VERSION`/`REVISION` the plugin was built against. `VERSION` is bumped on every breaking change; the store skips plugins whose version differs.
 
-`collection(kind, offset, limit)` is the revision 2 curated browse call for
-`popular` or `new`; unsupported kinds return an empty page.
+`catalogue()` returns a read-only descriptor for a UTF-8 JSON document with this shape:
 
-Revision 3 adds `getPopularApps(limit)`, returning `{app, score}` records. Scores
-are backend-owned values from 0 to 10 so the store can merge sources. Sources
-below revision 3 remain usable for other features; the store logs and skips
-them in Popular. Revision 4 appends `AppListing.added`, a Unix timestamp in
-seconds when a source knows when a catalogue entry was added. Revision 7 appends
-backend-owned `AppListing.badges` (`id`, localisable `label`, Material Symbol
-`icon`). Revision 8 appends `AppDetails.descriptionMarkdown`; descriptions use
-CommonMark paragraphs, headings, lists, bold, italic, inline code and HTTP(S)
-links (no raw HTML or images). Revision 10 appends `SourceInfo.description`.
+```json
+{"format":1,"source":"org.example.source","generated":1730000000,"apps":[{"id":"org.example.app","name":"Example","summary":"Short description","icon":"https://example/icon.png","developer":"Example Org","installed":false,"repo":"stable","versionName":"2.0","packageName":"org.example.app","added":1730000000,"badges":[],"repoOptions":[{"repoId":"stable","name":"Stable","version":"2.0","installable":true}],"repoLabel":"Stable","popularityScore":7.5,"currentVersionName":null,"signerMatches":false,"installable":true,"updateAvailable":false}]}
+```
 
-API version 3 replaces repository and login calls with generic source settings
-and actions. This is a breaking change, so `VERSION` is 3 and `REVISION` resets
-to 0. `settings()` returns source-owned rows with types `boolean`, `text`,
-`slider`, `group`, and `action`. Boolean values are `true`/`false`; text and
-slider values are strings. Slider rows carry min/max/step. Groups contain child
-rows and may be removable; removing one calls `setSetting(id, null)`. Actions
-carry text fields and run through `runAction(id, values, confirmed)`. The result
-may be an error, a confirmation request that the store answers by repeating
-with `confirmed=true`, or `launch=true` to open the plugin activity for
-`org.matonos.store.SOURCE_LOGIN`. On return, the store reloads settings.
-Read-only text rows are marked `readOnly`. A source with accounts represents
-them as an Account group with a status line and Sign in/Sign out actions.
+The top-level `format` is exactly 1. `source` is the plugin package and `generated` is Unix seconds. Each app is one install candidate per repository. The first fields through `repoOptions` are the complete `AppListing` shape. Additional store-index fields are `repoLabel`, numeric `popularityScore` (0 when unknown), `currentVersionName`, `signerMatches`, `installable`, and `updateAvailable`. Nullable values may be JSON null; absent optional values have the same meaning. The store treats ids and repository ids as opaque. Plugins must stream JSON to a file in their private files directory and return a descriptor without materializing a second whole-catalogue object tree.
 
-API version 4 removes the plugin-supplied `AppListing.rating` field. Ratings are
-owned and fetched by the store for every source; plugins must not emit ratings.
-This is a breaking change, so `VERSION` is 4 and `REVISION` resets to 0.
-Older rating fields are ignored by the store.
+`catalogueVersion()` is a cheap monotonic generation. It changes when refresh, repository settings, or installed-package state changes alter catalogue contents. The store persists the last imported generation per plugin and reimports only when it differs. Querying, filtering, ordering, paging, repository choices, installed state, updates, New, and Popular belong to the store's local SQLite index.
 
-`CAP_REQUIRES_SETUP` remains unchanged: when a source declares this static
-requirement, the store starts `org.matonos.store.SOURCE_SETUP` and enables the
-source only on `RESULT_OK`. `CAP_LOGIN` is removed. The detail-page origin
-dropdown remains app data returned in listings, independent of settings. An
-older contract version is skipped; a plugin that has no settings rows simply
-shows an empty settings screen.
-
-Any enabled source may call `IStore.update(id, result)` (bind action
-`org.matonos.store.STORE`). The store checks that `id` is installed and
-recorded to the calling source, then runs `install(id, repo)` on it with the recorded repo; anything else is
-rejected. `result` gets the outcome of the whole install.
-
-Ids are opaque and only mean something to the source that returned them.
-An install candidate is `(id, repo)`, where `repo` is an opaque source-owned identifier (or `"1"` when the source has no repositories). `search` returns one listing per
-candidate, so an app in several repos appears once per repo; the store groups
-them by app and lets the user pick the repo (a drop-down, later). `details`
-and `install` take the pair. The store records (plugin package, id, repo) for
-every installed package; updates and `IStore.update` stay on that repo, and
-moving to another repo is a reinstall the user chooses.
-
-Flatpak: AGE_RATINGS, PERMISSIONS. F-Droid: ANTI_FEATURES, PERMISSIONS.
-
-- `search`, `installed`, `updates`: `AppListing[]` (`packageName` set when the
-  Android package differs from `id`).
-- `details`: `AppDetails` (the `AppListing` plus description, screenshots,
-  permissions, sizes, safety, anti-features, age rating).
-- `reviews`: `Review[]` (date in epoch ms).
-
-The store converts results to JS with Gson; field names match
-`src/sources/Source.ts` in the software centre.
+`details(id, repo)` returns detail data for exactly that candidate; `reviews` remains paged. Settings/actions and install lifecycle calls retain their existing semantics. The catalogue eliminates the former `search`, `installed`, `updates`, `collection`, and `getPopularApps` calls.
 
 ## Errors
 

@@ -1,30 +1,18 @@
 package org.matonos.store.source;
 
+import android.os.ParcelFileDescriptor;
 import org.matonos.store.source.types.AppDetails;
-import org.matonos.store.source.types.AppListing;
-import org.matonos.store.source.types.PopularApp;
-import org.matonos.store.source.IInstallCallback;
 import org.matonos.store.source.types.Review;
 import org.matonos.store.source.types.SourceInfo;
 import org.matonos.store.source.types.SourceSetting;
 import org.matonos.store.source.types.ActionResult;
+import org.matonos.store.source.IInstallCallback;
 
-/**
- * A software source (store backend). Implemented by plugin apps, called only by
- * the software centre. Keep the method order: it is the transaction order.
- * Every list call is paged: items offset..offset+limit-1; a page shorter than
- * limit is the last (a binder transaction is capped at 1 MB).
- * Errors: see "Errors" in SOURCE-PLUGINS.md.
- */
+/** A source supplies one indexed catalogue; the store owns all catalogue queries. */
 interface ISoftwareSource {
-    /** API version: bumped on every breaking change; REVISION then resets to 0. */
-    const int VERSION = 4;
-    /**
-     * Bumped on every compatible change (method or parcelable field appended at
-     * the end). The store never calls a method newer than the plugin's revision.
-     */
+    /** Breaking catalogue contract. */
+    const int VERSION = 5;
     const int REVISION = 0;
-
     const int CAP_AGE_RATINGS = 1 << 1;
     const int CAP_REVIEWS = 1 << 2;
     const int CAP_ANTI_FEATURES = 1 << 3;
@@ -32,31 +20,16 @@ interface ISoftwareSource {
     const int CAP_REQUIRES_SETUP = 1 << 6;
 
     SourceInfo info();
-    AppListing[] search(String term, int offset, int limit);
+    /** Read-only UTF-8 JSON catalogue file descriptor. */
+    ParcelFileDescriptor catalogue();
+    /** Cheap monotonic generation, changed whenever catalogue contents change. */
+    long catalogueVersion();
     AppDetails details(String id, String repo);
     Review[] reviews(String id, int offset, int limit);
-    /** Installed packages that came from this source (store's record, see SOURCE-PLUGINS.md). */
-    AppListing[] installed(int offset, int limit);
-    /** Installed apps with an update available. */
-    AppListing[] updates(int offset, int limit);
-    /** Settings and actions replace repository and login calls in API version 3. */
     SourceSetting[] settings();
-    /** Returns null on success, otherwise a user-visible error. A null value removes a removable setting. */
     @nullable String setSetting(String id, @nullable String value);
-    /** Runs a settings action; confirmed repeats a pending confirmation. */
     ActionResult runAction(String id, in String[] values, boolean confirmed);
-    /** Prepares an install or update; the APKs come back through callback.commit(). */
     void install(String id, String repo, String operationId, IInstallCallback callback);
-    /** Stops a running install(); the source ends it with callback.failed(operationId, "cancelled"). Unknown or finished ids are ignored. */
     void cancel(String operationId);
-    /**
-     * Revision 1. Keep-alive state check: true while operationId is still being
-     * worked on (not yet ended with done/failed). Must answer at once, never block
-     * on the operation's own work.
-     */
     boolean running(String operationId);
-    /** Revision 2. Curated, paged browse collection (popular or new). */
-    AppListing[] collection(String kind, int offset, int limit);
-    /** Revision 3. Popular listings with backend-owned scores from 0 through 10. */
-    PopularApp[] getPopularApps(int limit);
 }

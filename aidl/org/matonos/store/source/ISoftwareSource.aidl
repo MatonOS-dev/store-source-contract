@@ -18,6 +18,8 @@ interface ISoftwareSource {
     const int CAP_ANTI_FEATURES = 1 << 3;
     const int CAP_PERMISSIONS = 1 << 4;
     const int CAP_REQUIRES_SETUP = 1 << 6;
+    /** Source accepts installLocalFile() (revision 2+). */
+    const int CAP_LOCAL_FILES = 1 << 7;
 
     SourceInfo info();
     /** Read-only UTF-8 JSON catalogue file descriptor. */

@@ -12,7 +12,7 @@ import org.matonos.store.source.IInstallCallback;
 interface ISoftwareSource {
     /** Breaking catalogue contract. */
     const int VERSION = 5;
-    const int REVISION = 1;
+    const int REVISION = 2;
     const int CAP_AGE_RATINGS = 1 << 1;
     const int CAP_REVIEWS = 1 << 2;
     const int CAP_ANTI_FEATURES = 1 << 3;
@@ -30,6 +30,10 @@ interface ISoftwareSource {
     @nullable String setSetting(String id, @nullable String value);
     ActionResult runAction(String id, in String[] values, boolean confirmed);
     void install(String id, String repo, String operationId, IInstallCallback callback);
+    /** Install a caller-selected local .flatpak bundle. allowUnsigned must be
+     * explicitly true to accept bundles without a commit signature. */
+    void installLocalFile(in ParcelFileDescriptor file, String displayName,
+            boolean allowUnsigned, String operationId, IInstallCallback callback);
     void cancel(String operationId);
     boolean running(String operationId);
     /**

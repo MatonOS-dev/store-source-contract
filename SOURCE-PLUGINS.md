@@ -68,6 +68,16 @@ abandons nothing the store has already committed, and ends with
 `failed(operationId, "cancelled")`. The store abandons a session it has not
 committed yet.
 
+`installLocalFile(file, displayName, allowUnsigned, operationId, callback)`
+installs a local `.flatpak` bundle from a caller-owned `ParcelFileDescriptor`.
+The source copies the file into leased operation storage before processing it.
+The store must show its unverified-source warning and pass `allowUnsigned=true`
+only after the user accepts; otherwise an unsigned bundle fails without a
+package commit. The source reports `Local bundle signature: signed` or
+`Local bundle signature: unsigned` through `progress` before submitting
+packages. The same commit, cancel and terminal callback rules apply. This
+method does not handle `.flatpakref` files.
+
 Keep-alive (revision 1): while an operation is in flight the store
 periodically calls `running(operationId)`. `false` before the source called
 `done`/`failed` means the source lost the operation: the store fails it
